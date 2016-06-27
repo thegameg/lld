@@ -208,6 +208,13 @@ public:
   void relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const override;
   bool usesOnlyLowPageBits(uint32_t Type) const override;
 };
+
+class J2TargetInfo final : public TargetInfo {
+public:
+  void relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const override;
+  RelExpr getRelExpr(uint32_t Type, const SymbolBody &S) const override;
+};
+
 } // anonymous namespace
 
 TargetInfo *createTarget() {
@@ -242,6 +249,8 @@ TargetInfo *createTarget() {
     if (Config->EKind == ELF32LEKind)
       return new X86_64TargetInfo<ELF32LE>();
     return new X86_64TargetInfo<ELF64LE>();
+  case EM_J2:
+    return new J2TargetInfo();
   }
   fatal("unknown target machine");
 }
@@ -2248,6 +2257,16 @@ void MipsTargetInfo<ELFT>::relocateOne(uint8_t *Loc, uint32_t Type,
 template <class ELFT>
 bool MipsTargetInfo<ELFT>::usesOnlyLowPageBits(uint32_t Type) const {
   return Type == R_MIPS_LO16 || Type == R_MIPS_GOT_OFST;
+}
+
+void J2TargetInfo::relocateOne(uint8_t *Loc, uint32_t Type,
+                               uint64_t Val) const {
+  fatal("unrecognized reloc " + Twine(Type));
+}
+
+RelExpr J2TargetInfo::getRelExpr(uint32_t Type, const SymbolBody &S) const {
+  fatal("unrecognized reloc " + Twine(Type));
+  return {};
 }
 }
 }
