@@ -83,6 +83,8 @@ TargetInfo *elf::getTarget() {
     if (Config->EKind == ELF32LEKind)
       return getX32TargetInfo();
     return getX86_64TargetInfo();
+  case EM_J2:
+    return getJ2TargetInfo();
   }
   fatal("unknown target machine");
 }
