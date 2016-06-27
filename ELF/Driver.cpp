@@ -73,6 +73,7 @@ static std::pair<ELFKind, uint16_t> parseEmulation(StringRef S) {
           .Case("elf_i386", {ELF32LEKind, EM_386})
           .Case("elf_iamcu", {ELF32LEKind, EM_IAMCU})
           .Case("elf_x86_64", {ELF64LEKind, EM_X86_64})
+          .Case("elf32cpu0", {ELF32LEKind, EM_CPU0})
           .Default({ELFNoneKind, EM_NONE});
 
   if (Ret.first == ELFNoneKind) {

@@ -209,6 +209,13 @@ public:
   void relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const override;
   bool usesOnlyLowPageBits(uint32_t Type) const override;
 };
+
+class Cpu0TargetInfo final : public TargetInfo {
+public:
+  void relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const override;
+  RelExpr getRelExpr(uint32_t Type, const SymbolBody &S) const override;
+};
+
 } // anonymous namespace
 
 TargetInfo *createTarget() {
@@ -243,6 +250,8 @@ TargetInfo *createTarget() {
     if (Config->EKind == ELF32LEKind)
       return new X86_64TargetInfo<ELF32LE>();
     return new X86_64TargetInfo<ELF64LE>();
+  case EM_CPU0:
+    return new Cpu0TargetInfo();
   }
   fatal("unknown target machine");
 }
@@ -2176,6 +2185,16 @@ void MipsTargetInfo<ELFT>::relocateOne(uint8_t *Loc, uint32_t Type,
 template <class ELFT>
 bool MipsTargetInfo<ELFT>::usesOnlyLowPageBits(uint32_t Type) const {
   return Type == R_MIPS_LO16 || Type == R_MIPS_GOT_OFST;
+}
+
+void Cpu0TargetInfo::relocateOne(uint8_t *Loc, uint32_t Type,
+                                 uint64_t Val) const {
+  checkInt<32>(Val, Type);
+  write32le(Loc, Val);
+}
+
+RelExpr Cpu0TargetInfo::getRelExpr(uint32_t Type, const SymbolBody &S) const {
+  return R_ABS;
 }
 }
 }
