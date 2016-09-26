@@ -2261,12 +2261,33 @@ bool MipsTargetInfo<ELFT>::usesOnlyLowPageBits(uint32_t Type) const {
 
 void J2TargetInfo::relocateOne(uint8_t *Loc, uint32_t Type,
                                uint64_t Val) const {
-  fatal("unrecognized reloc " + Twine(Type));
+  switch (Type) {
+  case R_J2_BSR: {
+    // It's not an unsigned, because we can jump 'til -4096.
+    int64_t PcRelOffset = Val;
+    // The relative displacement is multiplied by 2 when calling.
+    PcRelOffset >>= 2;
+    // Only 12 bits available for the displacement.
+    checkInt<12>(PcRelOffset, Type);
+    // Get the opcode.
+    PcRelOffset &= 0xFFF;
+    uint16_t Instr = read16le(Loc);
+    // Write the full instruction back.
+    write16le(Loc, Instr | PcRelOffset);
+    break;
+  }
+  default:
+    break;
+  }
 }
 
 RelExpr J2TargetInfo::getRelExpr(uint32_t Type, const SymbolBody &S) const {
-  fatal("unrecognized reloc " + Twine(Type));
-  return {};
+  switch (Type) {
+  case R_J2_BSR:
+    return R_PLT_PC;
+  default:
+    return {};
+  }
 }
 }
 }
