@@ -30,10 +30,22 @@ public:
   RelExpr getRelExpr(RelType Type, const Symbol &S,
                      const uint8_t *Loc) const override;
 };
+
+template <size_t Size, size_t Multiply>
+void applyJ2PCReloc(uint8_t *Loc, int64_t Value, uint32_t Type) {
+  Value /= Multiply;
+  checkInt<Size>(Loc, Value, Type);
+  Value &= ~(uint64_t(~0) << Size);
+  write64le(Loc, read64le(Loc) | Value);
+}
+
 } // namespace
 
 void J2::relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const {
   switch (Type) {
+  case R_J2_PC2_12:
+    applyJ2PCReloc<12, 2>(Loc, Val, Type);
+    break;
   default:
     error(getErrorLocation(Loc) + "unrecognized reloc " + Twine(Type));
     break;
@@ -43,6 +55,8 @@ void J2::relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const {
 RelExpr J2::getRelExpr(RelType Type, const Symbol &S,
                        const uint8_t *Loc) const {
   switch (Type) {
+  case R_J2_PC2_12:
+    return R_PLT_PC;
   default:
     error(getErrorLocation(Loc) + ": unknown relocation type: " + Twine(Type));
     return {};
