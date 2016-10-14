@@ -2262,7 +2262,9 @@ bool MipsTargetInfo<ELFT>::usesOnlyLowPageBits(uint32_t Type) const {
 void J2TargetInfo::relocateOne(uint8_t *Loc, uint32_t Type,
                                uint64_t Val) const {
   switch (Type) {
-  case R_J2_BSR: {
+  case R_J2_BSR:
+  case R_J2_BRA:
+  {
     // It's not an unsigned, because we can jump 'til -4096.
     int64_t PcRelOffset = Val;
     // The relative displacement is multiplied by 2 when calling.
@@ -2284,6 +2286,7 @@ void J2TargetInfo::relocateOne(uint8_t *Loc, uint32_t Type,
 RelExpr J2TargetInfo::getRelExpr(uint32_t Type, const SymbolBody &S) const {
   switch (Type) {
   case R_J2_BSR:
+  case R_J2_BRA:
     return R_PLT_PC;
   default:
     return {};
