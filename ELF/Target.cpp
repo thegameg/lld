@@ -2261,6 +2261,8 @@ bool MipsTargetInfo<ELFT>::usesOnlyLowPageBits(uint32_t Type) const {
 
 void J2TargetInfo::relocateOne(uint8_t *Loc, uint32_t Type,
                                uint64_t Val) const {
+  llvm::outs() << "Val: " << Val << "\n";
+  uint16_t Instr = read16le(Loc);
   switch (Type) {
   case R_J2_BSR:
   case R_J2_BRA:
@@ -2273,9 +2275,24 @@ void J2TargetInfo::relocateOne(uint8_t *Loc, uint32_t Type,
     checkInt<12>(PcRelOffset, Type);
     // Get the opcode.
     PcRelOffset &= 0xFFF;
-    uint16_t Instr = read16le(Loc);
     // Write the full instruction back.
     write16le(Loc, Instr | PcRelOffset);
+    break;
+  }
+  case R_J2_GA: {
+    write16le(Loc, Instr | (Val & 0xFF));
+    break;
+  }
+  case R_J2_GA00: {
+    write16le(Loc, Instr | ((Val & 0xFF00) >> 8));
+    break;
+  }
+  case R_J2_GA0000: {
+    write16le(Loc, Instr | ((Val & 0xFF0000) >> 16));
+    break;
+  }
+  case R_J2_GA000000: {
+    write16le(Loc, Instr | ((Val & 0xFF000000) >> 24));
     break;
   }
   default:
@@ -2289,7 +2306,7 @@ RelExpr J2TargetInfo::getRelExpr(uint32_t Type, const SymbolBody &S) const {
   case R_J2_BRA:
     return R_PLT_PC;
   default:
-    return {};
+    return R_ABS;
   }
 }
 }
