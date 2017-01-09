@@ -46,6 +46,13 @@ void J2::relocateOne(uint8_t *Loc, uint32_t Type, uint64_t Val) const {
   case R_J2_PC2_12:
     applyJ2PCReloc<12, 2>(Loc, Val, Type);
     break;
+  case R_J2_32: {
+    // Only 32 bits available for the address.
+    checkInt<32>(Loc, Val, Type);
+    // Write the address.
+    write32le(Loc, Val);
+    break;
+  }
   default:
     error(getErrorLocation(Loc) + "unrecognized reloc " + Twine(Type));
     break;
@@ -57,6 +64,8 @@ RelExpr J2::getRelExpr(RelType Type, const Symbol &S,
   switch (Type) {
   case R_J2_PC2_12:
     return R_PLT_PC;
+  case R_J2_32:
+    return R_ABS;
   default:
     error(getErrorLocation(Loc) + ": unknown relocation type: " + Twine(Type));
     return {};
